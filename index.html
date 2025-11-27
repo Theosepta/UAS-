@@ -1,0 +1,42 @@
+import pandas as pd
+import numpy as np
+from datetime import datetime, timedelta
+
+# === KONFIGURASI ===
+start_time = datetime(2025, 11, 25, 10, 0, 0)  # Waktu mulai
+total_rows = 600  # 600 detik = 10 menit data
+
+# === GENERATE DATA ===
+data = []
+
+for i in range(total_rows):
+    # Waktu bertambah 1 detik
+    current_time = start_time + timedelta(seconds=i)
+    time_str = current_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+
+    # Suhu: 24–35°C dengan noise
+    suhu = 30 + np.random.normal(0, 2)
+    suhu = max(24, min(40, suhu))
+
+    # Kelembapan: 40–90% dengan noise
+    kelembapan = 60 + np.random.normal(0, 8)
+    kelembapan = max(30, min(95, kelembapan))
+
+    # Jarak (ultrasonic): 5–300 cm
+    jarak = 150 + np.random.normal(0, 40)
+    jarak = max(5, min(300, jarak))
+
+    # Simpan
+    data.append([time_str, suhu, kelembapan, jarak])
+
+# === SIMPAN KE CSV ===
+df = pd.DataFrame(data, columns=["time", "suhu", "kelembapan", "jarak"])
+df.to_csv("data_simulasi_sensor.csv", index=False)
+
+print(f" Berhasil generate {len(df)} baris data!")
+print("\n5 data terakhir:")
+print(df.tail())
+
+# Download otomatis di Colab
+from google.colab import files
+files.download("data_simulasi_sensor.csv")
