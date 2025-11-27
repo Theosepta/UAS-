@@ -15,6 +15,18 @@
       padding: 20px;
       margin: 0;
     }
+    h1 {
+      text-align: center;
+      font-size: 32px;
+      margin-bottom: 5px;
+    }
+    h2.subtitle {
+      text-align: center;
+      font-size: 22px;
+      color: #555;
+      margin-top: 0;
+      margin-bottom: 20px;
+    }
     h2 {
       text-align: center;
       margin-bottom: 10px;
@@ -37,6 +49,9 @@
 </head>
 <body>
 
+<h1>ELEKTRONIKA DAYA</h1>
+<h2 class="subtitle">KELOMPOK 7</h2>
+
 <h2>Monitoring Panel Surya - Gauge + Grafik</h2>
 
 <div class="row">
@@ -51,8 +66,7 @@
       data-units="Lux"
       data-title="Intensitas Cahaya"
       data-bar-width="15"
-      data-glow="true">
-    </canvas>
+      data-glow="true"></canvas>
   </div>
 
   <!-- Tegangan Panel -->
@@ -65,8 +79,7 @@
       data-title="Tegangan Panel Surya"
       data-units="V"
       data-animation="true"
-      data-glow="true">
-    </canvas>
+      data-glow="true"></canvas>
   </div>
 
   <!-- Arus Beban -->
@@ -79,8 +92,7 @@
       data-title="Arus Beban"
       data-units="A"
       data-animation="true"
-      data-glow="true">
-    </canvas>
+      data-glow="true"></canvas>
   </div>
 
 </div>
@@ -92,7 +104,6 @@
   <div class="box"><canvas id="chartArus" width="350" height="200"></canvas><h3>Grafik Arus Beban</h3></div>
   <div class="box"><canvas id="chartFrek" width="350" height="200"></canvas><h3>Grafik Frekuensi</h3></div>
 </div>
-
 
 <script>
 window.onload = function () {
@@ -128,7 +139,6 @@ window.onload = function () {
 
     let cahaya = Math.random() * 1000;
 
-    // PEMBULATAN HANYA 1 DIGIT DI BELAKANG KOMA
     let vpanel = ((cahaya / 1000) * 30).toFixed(1);
     let arus   = ((vpanel / 30) * 10).toFixed(1);
     let frek   = 50.0;
