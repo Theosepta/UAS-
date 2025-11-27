@@ -3,200 +3,166 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Monitoring Panel Surya</title>
+  <title>Monitoring Panel Surya - Simulasi</title>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-gauges@2.1.7/gauge.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
     body {
+      background: #f5f5f5;
       font-family: Arial, sans-serif;
-      background: #111;
-      color: #eee;
+      padding: 20px;
+      margin: 0;
+    }
+    h2 {
       text-align: center;
-      padding: 20px;
+      margin-bottom: 25px;
     }
-
-    .container {
-      max-width: 900px;
-      margin: auto;
-    }
-
-    .gauges {
+    .row {
       display: flex;
-      justify-content: space-around;
       flex-wrap: wrap;
-      margin-bottom: 40px;
+      justify-content: center;
+      gap: 25px;
+      margin-bottom: 35px;
     }
-
-    canvas {
-      max-width: 100%;
+    .box {
+      background: #fff;
+      padding: 15px;
+      border-radius: 12px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+      text-align: center;
+      width: 360px;
     }
-
-    .chart-box {
-      background: #222;
-      padding: 20px;
-      border-radius: 10px;
+    .valueBox {
+      font-size: 22px;
+      font-weight: bold;
+      margin-bottom: 8px;
+      color: #333;
     }
-
   </style>
 </head>
-
 <body>
-  <div class="container">
 
-    <!-- GAUGE PANELS -->
-    <div class="gauges">
-      <canvas id="gaugeVoltage" width="200" height="200"></canvas>
-      <canvas id="gaugeCurrent" width="200" height="200"></canvas>
-      <canvas id="gaugePower" width="200" height="200"></canvas>
-      <canvas id="gaugeFrequency" width="200" height="200"></canvas>
-    </div>
+<h2>Monitoring Panel Surya - Gauge + Grafik</h2>
 
-    <!-- GRAPH BELOW GAUGES -->
-    <div class="chart-box">
-      <canvas id="lineChart"></canvas>
-    </div>
+<div class="row">
 
+  <!-- Intensitas Cahaya -->
+  <div class="box">
+    <div id="valCahaya" class="valueBox">0 Lux</div>
+    <canvas id="gaugeCahaya" width="160" height="400"
+      data-type="linear-gauge"
+      data-min-value="0"
+      data-max-value="1000"
+      data-major-ticks="0,200,400,600,800,1000"
+      data-units="Lux"
+      data-title="Intensitas Cahaya"
+      data-bar-width="15"
+      data-glow="true"></canvas>
+
+    <canvas id="chartCahaya" height="180"></canvas>
   </div>
 
-  <script>
-    // ---------------- GAUGES -----------------------
-    const gaugeVoltage = new RadialGauge({
-      renderTo: "gaugeVoltage",
-      width: 200,
-      height: 200,
-      units: "Volt",
-      minValue: 0,
-      maxValue: 300,
-      majorTicks: ["0","50","100","150","200","250","300"],
-      strokeTicks: true,
-      highlights: [],
-      colorPlate: "#222",
-      colorNumbers: "#fff",
-      needleType: "line",
-      animationDuration: 500,
-    }).draw();
+  <!-- Tegangan Panel -->
+  <div class="box">
+    <div id="valVPanel" class="valueBox">0 V</div>
+    <canvas id="gaugeVPanel" width="250" height="250"
+      data-type="radial-gauge"
+      data-min-value="0"
+      data-max-value="30"
+      data-major-ticks="0,5,10,15,20,25,30"
+      data-units="V"
+      data-title="Tegangan Panel"
+      data-animation="true"
+      data-glow="true"></canvas>
 
-    const gaugeCurrent = new RadialGauge({
-      renderTo: "gaugeCurrent",
-      width: 200,
-      height: 200,
-      units: "Ampere",
-      minValue: 0,
-      maxValue: 20,
-      majorTicks: ["0","5","10","15","20"],
-      strokeTicks: true,
-      colorPlate: "#222",
-      colorNumbers: "#fff",
-      needleType: "line",
-      animationDuration: 500,
-    }).draw();
+    <canvas id="chartVPanel" height="180"></canvas>
+  </div>
 
-    const gaugePower = new RadialGauge({
-      renderTo: "gaugePower",
-      width: 200,
-      height: 200,
-      units: "Watt",
-      minValue: 0,
-      maxValue: 5000,
-      majorTicks: ["0","1000","2000","3000","4000","5000"],
-      strokeTicks: true,
-      colorPlate: "#222",
-      colorNumbers: "#fff",
-      needleType: "line",
-      animationDuration: 500,
-    }).draw();
+  <!-- Arus Beban -->
+  <div class="box">
+    <div id="valArus" class="valueBox">0 A</div>
+    <canvas id="gaugeArus" width="250" height="250"
+      data-type="radial-gauge"
+      data-min-value="0"
+      data-max-value="20"
+      data-major-ticks="0,2,4,6,8,10,12,14,16,18,20"
+      data-units="A"
+      data-title="Arus Beban"
+      data-animation="true"
+      data-glow="true"></canvas>
 
-    const gaugeFrequency = new RadialGauge({
-      renderTo: "gaugeFrequency",
-      width: 200,
-      height: 200,
-      units: "Hz",
-      minValue: 0,
-      maxValue: 70,
-      majorTicks: ["0","10","20","30","40","50","60","70"],
-      strokeTicks: true,
-      colorPlate: "#222",
-      colorNumbers: "#fff",
-      needleType: "line",
-      animationDuration: 500,
-    }).draw();
+    <canvas id="chartArus" height="180"></canvas>
+  </div>
 
+</div>
 
-    // ---------------- GRAPH -----------------------
-    const ctx = document.getElementById("lineChart").getContext("2d");
-    
-    const chartData = {
-      labels: [],
-      datasets: [
-        {
-          label: "Voltage (V)",
-          data: [],
+<script>
+window.onload = function () {
+
+  // GAUGES
+  let gCahaya = document.gauges.get('gaugeCahaya');
+  let gVPanel = document.gauges.get('gaugeVPanel');
+  let gArus   = document.gauges.get('gaugeArus');
+
+  // TEXT DISPLAY
+  const valCahaya = document.getElementById("valCahaya");
+  const valVPanel = document.getElementById("valVPanel");
+  const valArus   = document.getElementById("valArus");
+
+  // LINE CHART MAKER
+  function makeChart(id, min, max) {
+    return new Chart(document.getElementById(id).getContext("2d"), {
+      type: 'line',
+      data: { 
+        labels: Array(20).fill(""), 
+        datasets: [{ 
+          data: Array(20).fill(0),
           borderWidth: 2,
-          borderColor: "rgb(0,150,255)",
-        },
-        {
-          label: "Current (A)",
-          data: [],
-          borderWidth: 2,
-          borderColor: "rgb(0,255,150)",
-        },
-        {
-          label: "Power (W)",
-          data: [],
-          borderWidth: 2,
-          borderColor: "rgb(255,200,0)",
-        },
-      ]
-    };
-
-    const lineChart = new Chart(ctx, {
-      type: "line",
-      data: chartData,
-      options: {
-        responsive: true,
-        animation: false,
-        scales: {
-          y: { beginAtZero: true }
-        }
-      }
+          tension: 0.3
+        }]
+      },
+      options: { animation:false, scales:{ y:{ min, max }} }
     });
+  }
 
+  let chartCahaya = makeChart("chartCahaya", 0, 1000);
+  let chartVPanel = makeChart("chartVPanel", 0, 30);
+  let chartArus   = makeChart("chartArus", 0, 20);
 
-    // ---------------- SIMULATION -----------------------
-    function updateData() {
-      const vol = 210 + Math.random() * 20;
-      const cur = 3 + Math.random() * 1;
-      const pow = vol * cur;
-      const freq = 50; // tetap flat
+  // UPDATE LOOP (1 DETIK)
+  setInterval(() => {
 
-      // Update gauge
-      gaugeVoltage.value = vol;
-      gaugeCurrent.value = cur;
-      gaugePower.value = pow;
-      gaugeFrequency.value = freq;
+    let cahaya = Math.random() * 1000;
+    let vpanel = (cahaya / 1000) * 30;
+    let arus   = (vpanel / 30) * 10;
 
-      // Update chart
-      const now = new Date().toLocaleTimeString();
-      chartData.labels.push(now);
+    // UPDATE GAUGES
+    gCahaya.value = cahaya;
+    gVPanel.value = vpanel;
+    gArus.value   = arus;
 
-      chartData.datasets[0].data.push(vol);
-      chartData.datasets[1].data.push(cur);
-      chartData.datasets[2].data.push(pow);
+    // UPDATE TEXT DISPLAY (TANPA LEADING ZERO)
+    valCahaya.textContent = Math.round(cahaya) + " Lux";
+    valVPanel.textContent = vpanel.toFixed(1) + " V";
+    valArus.textContent   = arus.toFixed(1) + " A";
 
-      if (chartData.labels.length > 30) {
-        chartData.labels.shift();
-        chartData.datasets.forEach(ds => ds.data.shift());
-      }
-
-      lineChart.update();
+    // UPDATE LINE CHART
+    function push(chart, val) {
+      chart.data.datasets[0].data.shift();
+      chart.data.datasets[0].data.push(val);
+      chart.update();
     }
 
-    // Update tiap 1 detik
-    setInterval(updateData, 1000);
+    push(chartCahaya, cahaya);
+    push(chartVPanel, vpanel);
+    push(chartArus, arus);
 
-  </script>
+  }, 1000);  // << UPDATE SETIAP 1 DETIK
+
+};
+</script>
 
 </body>
 </html>
