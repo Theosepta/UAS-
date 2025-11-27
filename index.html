@@ -1,42 +1,196 @@
-import pandas as pd
-import numpy as np
-from datetime import datetime, timedelta
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Monitoring Panel Surya - Simulasi</title>
 
-# === KONFIGURASI ===
-start_time = datetime(2025, 11, 25, 10, 0, 0)  # Waktu mulai
-total_rows = 600  # 600 detik = 10 menit data
+  <script src="https://cdn.jsdelivr.net/npm/canvas-gauges@2.1.7/gauge.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-# === GENERATE DATA ===
-data = []
+  <style>
+    body {
+      background: #f5f5f5;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      margin: 0;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    .box {
+      background: #fff;
+      padding: 15px;
+      border-radius: 12px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
 
-for i in range(total_rows):
-    # Waktu bertambah 1 detik
-    current_time = start_time + timedelta(seconds=i)
-    time_str = current_time.strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+<h2>Monitoring Panel Surya - Gauge + Grafik</h2>
 
-    # Suhu: 24–35°C dengan noise
-    suhu = 30 + np.random.normal(0, 2)
-    suhu = max(24, min(40, suhu))
+<div class="row">
 
-    # Kelembapan: 40–90% dengan noise
-    kelembapan = 60 + np.random.normal(0, 8)
-    kelembapan = max(30, min(95, kelembapan))
+  <!-- Intensitas Cahaya (Thermometer) -->
+  <div class="box">
+    <canvas id="gaugeCahaya" width="160" height="400"
+      data-type="linear-gauge"
+      data-min-value="0"
+      data-max-value="1000"
+      data-major-ticks="0,200,400,600,800,1000"
+      data-units="Lux"
+      data-title="Intensitas Cahaya"
+      data-color-value="#FFC107"
+      data-bar-width="15"
+      data-glow="true">
+    </canvas>
+  </div>
 
-    # Jarak (ultrasonic): 5–300 cm
-    jarak = 150 + np.random.normal(0, 40)
-    jarak = max(5, min(300, jarak))
+  <!-- Tegangan Panel (Speedometer) -->
+  <div class="box">
+    <canvas id="gaugeVPanel" width="250" height="250"
+      data-type="radial-gauge"
+      data-min-value="0"
+      data-max-value="30"
+      data-major-ticks="0,5,10,15,20,25,30"
+      data-title="Tegangan Panel Surya"
+      data-units="V"
+      data-animation="true"
+      data-glow="true">
+    </canvas>
+  </div>
 
-    # Simpan
-    data.append([time_str, suhu, kelembapan, jarak])
+  <!-- Arus Beban (Speedometer) -->
+  <div class="box">
+    <canvas id="gaugeArus" width="250" height="250"
+      data-type="radial-gauge"
+      data-min-value="0"
+      data-max-value="20"
+      data-major-ticks="0,2,4,6,8,10,12,14,16,18,20"
+      data-title="Arus Beban"
+      data-units="A"
+      data-animation="true"
+      data-glow="true">
+    </canvas>
+  </div>
 
-# === SIMPAN KE CSV ===
-df = pd.DataFrame(data, columns=["time", "suhu", "kelembapan", "jarak"])
-df.to_csv("data_simulasi_sensor.csv", index=False)
+  <!-- Frekuensi (Oscilloscope) -->
+  <div class="box">
+    <canvas id="oscilloscope" width="350" height="200"></canvas>
+    <h3>Frekuensi (50 Hz)</h3>
+  </div>
 
-print(f" Berhasil generate {len(df)} baris data!")
-print("\n5 data terakhir:")
-print(df.tail())
+</div>
 
-# Download otomatis di Colab
-from google.colab import files
-files.download("data_simulasi_sensor.csv")
+<div class="row">
+  <div class="box"><canvas id="chartCahaya" width="350" height="200"></canvas><h3>Grafik Intensitas Cahaya</h3></div>
+  <div class="box"><canvas id="chartVPanel" width="350" height="200"></canvas><h3>Grafik Tegangan Panel</h3></div>
+  <div class="box"><canvas id="chartArus" width="350" height="200"></canvas><h3>Grafik Arus Beban</h3></div>
+  <div class="box"><canvas id="chartFrek" width="350" height="200"></canvas><h3>Grafik Frekuensi</h3></div>
+</div>
+
+
+<script>
+window.onload = function () {
+
+  // GAUGES
+  let gCahaya = document.gauges.get('gaugeCahaya');
+  let gVPanel = document.gauges.get('gaugeVPanel');
+  let gArus   = document.gauges.get('gaugeArus');
+
+  // OSCILLOSCOPE
+  let oscCtx = document.getElementById("oscilloscope").getContext("2d");
+  let oscChart = new Chart(oscCtx, {
+    type: 'line',
+    data: {
+      labels: Array(40).fill(""),
+      datasets: [{
+        label: "Frekuensi",
+        data: Array(40).fill(50),
+        borderWidth: 2,
+        tension: 0.25
+      }]
+    },
+    options: { animation: false, scales: { y: { min: 40, max: 60 }} }
+  });
+
+  // LINE CHART MAKER
+  function createChart(id, min, max) {
+    return new Chart(document.getElementById(id).getContext("2d"), {
+      type: 'line',
+      data: {
+        labels: Array(20).fill(""),
+        datasets: [{
+          data: Array(20).fill(0),
+          borderWidth: 2,
+          tension: 0.3
+        }]
+      },
+      options: { animation: false, scales: { y: { min, max }} }
+    });
+  }
+
+  let chartCahaya = createChart("chartCahaya", 0, 1000);
+  let chartVPanel = createChart("chartVPanel", 0, 30);
+  let chartArus   = createChart("chartArus", 0, 20);
+  let chartFrek   = createChart("chartFrek", 40, 60);
+
+  // UPDATE LOOP
+  setInterval(() => {
+
+    // ==========================
+    // SIMULASI DATA REALISTIS
+    // ==========================
+
+    // Intensitas cahaya: 0–1000 lux
+    let cahaya = Math.random() * 1000;
+
+    // Tegangan panel mengikuti intensitas cahaya
+    // Semakin terang → semakin mendekati 30V
+    let vpanel = (cahaya / 1000) * 30;
+
+    // Arus beban mengikuti tegangan panel (simulasi sederhana)
+    let arus = (vpanel / 30) * 10;
+
+    // Frekuensi tetap 50 Hz
+    let frek = 50.0;
+
+    // UPDATE GAUGES
+    gCahaya.value = cahaya;
+    gVPanel.value = vpanel;
+    gArus.value   = arus;
+
+    // UPDATE OSCILLOSCOPE
+    oscChart.data.datasets[0].data.shift();
+    oscChart.data.datasets[0].data.push(frek);
+    oscChart.update();
+
+    // UPDATE LINE CHART
+    function push(chart, val) {
+      chart.data.datasets[0].data.shift();
+      chart.data.datasets[0].data.push(val);
+      chart.update();
+    }
+
+    push(chartCahaya, cahaya);
+    push(chartVPanel, vpanel);
+    push(chartArus, arus);
+    push(chartFrek, frek);
+
+  }, 500);
+
+};
+</script>
+
+</body>
+</html>
