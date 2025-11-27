@@ -194,7 +194,7 @@ function updateStep() {
 // ====================== GAUGE ROTATION ======================
 function updateGauge(id, value) {
   const deg = (value / 300) * 180 - 90; 
-  document.getElementById(id).style.transform = rotate(${deg}deg);
+  document.getElementById(id).style.transform = `rotate(${deg}deg)`;
 }
 
 // ====================== START ======================
