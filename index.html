@@ -85,7 +85,7 @@
 
 </div>
 
-<!-- HANYA GRAFIK SAJA (FREKUENSI TIDAK ADA GAUGE) -->
+<!-- HANYA GRAFIK SAJA -->
 <div class="row">
   <div class="box"><canvas id="chartCahaya" width="350" height="200"></canvas><h3>Grafik Intensitas Cahaya</h3></div>
   <div class="box"><canvas id="chartVPanel" width="350" height="200"></canvas><h3>Grafik Tegangan Panel</h3></div>
@@ -102,12 +102,12 @@ window.onload = function () {
   let gVPanel = document.gauges.get('gaugeVPanel');
   let gArus   = document.gauges.get('gaugeArus');
 
-  // CHART CREATOR – LABEL DIKOSONGKAN → TIDAK ADA LEADING ZERO
+  // CHART CREATOR
   function createChart(id, min, max) {
     return new Chart(document.getElementById(id).getContext("2d"), {
       type: 'line',
       data: {
-        labels: Array(20).fill(""),   // ← LABEL KOSONG = TIDAK ADA ANGKA 014 DLL
+        labels: Array(20).fill(""),
         datasets: [{
           data: Array(20).fill(0),
           borderWidth: 2,
@@ -123,20 +123,22 @@ window.onload = function () {
   let chartArus   = createChart("chartArus", 0, 20);
   let chartFrek   = createChart("chartFrek", 40, 60);
 
-  // UPDATE LOOP
+  // UPDATE LOOP (3 detik)
   setInterval(() => {
 
     let cahaya = Math.random() * 1000;
-    let vpanel = (cahaya / 1000) * 30;
-    let arus   = (vpanel / 30) * 10;
+
+    // PEMBULATAN HANYA 1 DIGIT DI BELAKANG KOMA
+    let vpanel = ((cahaya / 1000) * 30).toFixed(1);
+    let arus   = ((vpanel / 30) * 10).toFixed(1);
     let frek   = 50.0;
 
-    // UPDATE GAUGES
+    // Update Gauges
     gCahaya.value = cahaya;
-    gVPanel.value = vpanel;
-    gArus.value   = arus;
+    gVPanel.value = Number(vpanel);
+    gArus.value   = Number(arus);
 
-    // UPDATE LINE CHART
+    // Update Grafik
     function push(chart, val) {
       chart.data.datasets[0].data.shift();
       chart.data.datasets[0].data.push(val);
@@ -148,7 +150,7 @@ window.onload = function () {
     push(chartArus, arus);
     push(chartFrek, frek);
 
-  }, 500);
+  }, 3000);
 
 };
 </script>
