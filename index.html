@@ -17,14 +17,14 @@
     }
     h2 {
       text-align: center;
-      margin-bottom: 10px;
+      margin-bottom: 20px;
     }
     .row {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
-      gap: 20px;
-      margin-bottom: 30px;
+      gap: 25px;
+      margin-bottom: 35px;
     }
     .box {
       background: #fff;
@@ -32,6 +32,13 @@
       border-radius: 12px;
       box-shadow: 0 3px 10px rgba(0,0,0,0.15);
       text-align: center;
+      width: 350px;
+    }
+    .valueBox {
+      font-size: 22px;
+      font-weight: bold;
+      margin-bottom: 8px;
+      color: #333;
     }
   </style>
 </head>
@@ -41,8 +48,9 @@
 
 <div class="row">
 
-  <!-- Intensitas Cahaya (Thermometer) -->
+  <!-- Intensitas Cahaya -->
   <div class="box">
+    <div id="valCahaya" class="valueBox">0 Lux</div>
     <canvas id="gaugeCahaya" width="160" height="400"
       data-type="linear-gauge"
       data-min-value="0"
@@ -50,55 +58,53 @@
       data-major-ticks="0,200,400,600,800,1000"
       data-units="Lux"
       data-title="Intensitas Cahaya"
-      data-color-value="#FFC107"
       data-bar-width="15"
       data-glow="true">
     </canvas>
+    <canvas id="chartCahaya" height="180"></canvas>
   </div>
 
-  <!-- Tegangan Panel (Speedometer) -->
+  <!-- Tegangan Panel -->
   <div class="box">
+    <div id="valVPanel" class="valueBox">0 V</div>
     <canvas id="gaugeVPanel" width="250" height="250"
       data-type="radial-gauge"
       data-min-value="0"
       data-max-value="30"
       data-major-ticks="0,5,10,15,20,25,30"
-      data-title="Tegangan Panel Surya"
       data-units="V"
+      data-title="Tegangan Panel"
       data-animation="true"
       data-glow="true">
     </canvas>
+    <canvas id="chartVPanel" height="180"></canvas>
   </div>
 
-  <!-- Arus Beban (Speedometer) -->
+  <!-- Arus Beban -->
   <div class="box">
+    <div id="valArus" class="valueBox">0 A</div>
     <canvas id="gaugeArus" width="250" height="250"
       data-type="radial-gauge"
       data-min-value="0"
       data-max-value="20"
       data-major-ticks="0,2,4,6,8,10,12,14,16,18,20"
-      data-title="Arus Beban"
       data-units="A"
+      data-title="Arus Beban"
       data-animation="true"
       data-glow="true">
     </canvas>
+    <canvas id="chartArus" height="180"></canvas>
   </div>
 
-  <!-- Frekuensi (Oscilloscope) -->
+</div>
+
+<!-- OSCILLOSCOPE -->
+<div class="row">
   <div class="box">
     <canvas id="oscilloscope" width="350" height="200"></canvas>
     <h3>Frekuensi (50 Hz)</h3>
   </div>
-
 </div>
-
-<div class="row">
-  <div class="box"><canvas id="chartCahaya" width="350" height="200"></canvas><h3>Grafik Intensitas Cahaya</h3></div>
-  <div class="box"><canvas id="chartVPanel" width="350" height="200"></canvas><h3>Grafik Tegangan Panel</h3></div>
-  <div class="box"><canvas id="chartArus" width="350" height="200"></canvas><h3>Grafik Arus Beban</h3></div>
-  <div class="box"><canvas id="chartFrek" width="350" height="200"></canvas><h3>Grafik Frekuensi</h3></div>
-</div>
-
 
 <script>
 window.onload = function () {
@@ -108,69 +114,51 @@ window.onload = function () {
   let gVPanel = document.gauges.get('gaugeVPanel');
   let gArus   = document.gauges.get('gaugeArus');
 
-  // OSCILLOSCOPE
+  // DISPLAY TEXT TANPA LEADING ZERO
+  const valCahaya = document.getElementById("valCahaya");
+  const valVPanel = document.getElementById("valVPanel");
+  const valArus   = document.getElementById("valArus");
+
+  // OSCILLOSCOPE 50 Hz (tetap)
   let oscCtx = document.getElementById("oscilloscope").getContext("2d");
   let oscChart = new Chart(oscCtx, {
     type: 'line',
-    data: {
-      labels: Array(40).fill(""),
-      datasets: [{
-        label: "Frekuensi",
-        data: Array(40).fill(50),
-        borderWidth: 2,
-        tension: 0.25
-      }]
-    },
-    options: { animation: false, scales: { y: { min: 40, max: 60 }} }
+    data: { labels: Array(40).fill(""), datasets: [{ data: Array(40).fill(50), borderWidth:2, tension:0.25 }] },
+    options: { animation: false, scales: { y: { min:40, max:60 } } }
   });
 
-  // LINE CHART MAKER
-  function createChart(id, min, max) {
+  // Line Chart Maker
+  function makeChart(id, min, max) {
     return new Chart(document.getElementById(id).getContext("2d"), {
       type: 'line',
-      data: {
-        labels: Array(20).fill(""),
-        datasets: [{
-          data: Array(20).fill(0),
-          borderWidth: 2,
-          tension: 0.3
-        }]
-      },
-      options: { animation: false, scales: { y: { min, max }} }
+      data: { labels: Array(20).fill(""), datasets: [{ data: Array(20).fill(0), borderWidth:2, tension:0.3 }] },
+      options: { animation:false, scales:{ y:{ min, max }} }
     });
   }
 
-  let chartCahaya = createChart("chartCahaya", 0, 1000);
-  let chartVPanel = createChart("chartVPanel", 0, 30);
-  let chartArus   = createChart("chartArus", 0, 20);
-  let chartFrek   = createChart("chartFrek", 40, 60);
+  let chartCahaya = makeChart("chartCahaya", 0, 1000);
+  let chartVPanel = makeChart("chartVPanel", 0, 30);
+  let chartArus   = makeChart("chartArus", 0, 20);
 
-  // UPDATE LOOP
+  // LOOP UPDATE
   setInterval(() => {
 
-    // ==========================
-    // SIMULASI DATA REALISTIS
-    // ==========================
-
-    // Intensitas cahaya: 0–1000 lux
     let cahaya = Math.random() * 1000;
-
-    // Tegangan panel mengikuti intensitas cahaya
-    // Semakin terang → semakin mendekati 30V
     let vpanel = (cahaya / 1000) * 30;
-
-    // Arus beban mengikuti tegangan panel (simulasi sederhana)
-    let arus = (vpanel / 30) * 10;
-
-    // Frekuensi tetap 50 Hz
-    let frek = 50.0;
+    let arus   = (vpanel / 30) * 10;
+    let frek   = 50;
 
     // UPDATE GAUGES
     gCahaya.value = cahaya;
     gVPanel.value = vpanel;
     gArus.value   = arus;
 
-    // UPDATE OSCILLOSCOPE
+    // UPDATE TEXT DISPLAY
+    valCahaya.textContent = Math.round(cahaya) + " Lux";
+    valVPanel.textContent = vpanel.toFixed(1) + " V";
+    valArus.textContent   = arus.toFixed(1) + " A";
+
+    // UPDATE OSC CHART
     oscChart.data.datasets[0].data.shift();
     oscChart.data.datasets[0].data.push(frek);
     oscChart.update();
@@ -185,7 +173,6 @@ window.onload = function () {
     push(chartCahaya, cahaya);
     push(chartVPanel, vpanel);
     push(chartArus, arus);
-    push(chartFrek, frek);
 
   }, 500);
 
